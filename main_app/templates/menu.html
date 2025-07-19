@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Menu{% endblock %}
+
+{% block content %}
+    <style>
+        table {
+            width: 90%;
+            margin: auto;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .actions a {
+            margin-right: 10px;
+        }
+
+        .top-bar {
+            margin: 20px;
+            text-align: center;
+        }
+    </style>
+
+    <div class="top-bar">
+        <h1>Menu</h1>
+        {% if admin %}
+            <a href="{{ url_for('add_food') }}">Add New Item</a> |
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Price</th>
+                {% if admin %}
+                <th>Actions</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% if foods|length == 0 %}
+            <tr>
+                <td colspan="{% if admin %}4{% else %}3{% endif %}" style="text-align: center; font-style: italic;">
+                    No food items yet. 
+                    {% if admin %}
+                        Click "Add New Item" to get started.
+                    {% else %}
+                        Please log in as admin to manage menu.
+                    {% endif %}
+                </td>
+            </tr>
+            {% endif %}
+
+            {% for food in foods %}
+            <tr>
+                <td>{{ food.gn_food_name }}</td>
+                <td>{{ food.ds_food_descr }}</td>
+                <td>€{{ "%.2f"|format(food.nm_price_number) }}</td>
+                {% if admin %}
+                <td class="actions">
+                    <a href="{{ url_for('edit_food', food_id=food.id_food_id) }}">Edit</a>
+                    <a href="{{ url_for('delete_food', food_id=food.id_food_id) }}">Delete</a>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

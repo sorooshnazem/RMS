@@ -1,0 +1,28 @@
+<h2>Edit Menu</h2>
+
+<form method="POST">
+  <input name="gn_food_name" placeholder="Food Name" required>
+  <input name="nm_price_number" placeholder="Price" type="number" required>
+  <input name="ds_food_descr" placeholder="Description" required>
+  <select name="id_food_category_id">
+    {% for category in categories %}
+      <option value="{{ category.id_food_category_id }}">{{ category.gn_food_category_name }}</option>
+    {% endfor %}
+  </select>
+  <button name="add" type="submit">Add Food</button>
+</form>
+
+<h3>Current Menu</h3>
+<ul>
+  {% for food in menu %}
+    <li>
+      {{ food.gn_food_name }} - €{{ food.nm_price_number }}
+      <form method="POST" style="display:inline;">
+        <input type="hidden" name="food_id" value="{{ food.id_food_id }}">
+        <button name="delete" type="submit">Delete</button>
+      </form>
+    </li>
+  {% endfor %}
+</ul>
+
+<a href="{{ url_for('logout') }}">Logout</a>

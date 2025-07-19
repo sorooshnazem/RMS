@@ -1,0 +1,12 @@
+<!-- templates/navbar.html -->
+<nav style="background-color: #333; padding: 10px; text-align: center;">
+    <a href="{{ url_for('home') }}" style="color: white; margin: 0 15px;">Home</a>
+    <a href="{{ url_for('menu') }}" style="color: white; margin: 0 15px;">Menu</a>
+    <a href="{{ url_for('order') }}" style="color: white; margin: 0 15px;">Order</a>
+    {% if session.get('admin') %}
+        <a href="{{ url_for('add_food') }}" style="color: white; margin: 0 15px;">Add Food</a>
+        <a href="{{ url_for('logout') }}" style="color: white; margin: 0 15px;">Logout</a>
+    {% else %}
+        <a href="{{ url_for('login') }}" style="color: white; margin: 0 15px;">Admin Login</a>
+    {% endif %}
+</nav>
