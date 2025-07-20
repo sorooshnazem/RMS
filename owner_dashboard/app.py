@@ -6,17 +6,24 @@ app.secret_key = 'your-secret-key12345'  # Required for sessions
 
 # --- Helper function ---
 def get_orders():
-    conn = sqlite3.connect('../main_app/instance/restaurant.db')  # Adjust path if needed
+    conn = sqlite3.connect('../main_app/instance/restaurant.db')  # adjust path if needed
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-
+    
     cursor.execute("""
-        SELECT o.id_order_id, u.nm_phone_number, u.gn_surname as gn_full_name, o.dt_order_date
-        FROM 'order' o JOIN 'User' u ON o.id_user_id=u.id_user_id
-        ORDER BY o.dt_order_date DESC;
+    SELECT 
+        o.id_order_id,
+        u.nm_phone_number,
+        u.gn_surname AS gn_full_name,
+        o.dt_order_date,
+        o.gn_order_status_name
+    FROM "order" o
+    JOIN "User" u ON o.id_user_id = u.id_user_id
+    ORDER BY o.dt_order_date DESC
     """)
     rows = cursor.fetchall()
     conn.close()
+    
     return [dict(row) for row in rows]
 
 # --- Routes ---

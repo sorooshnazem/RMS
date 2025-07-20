@@ -32,6 +32,7 @@ class Order(db.Model):
     dt_order_date = db.Column(db.Text, nullable=False)
     dt_total_price_date = db.Column(db.Float, nullable=False)
     id_user_id = db.Column(db.Integer, nullable=False)
+    gn_status_order_name = db.Column(db.Text, nullable=False)
 
 class OrderDetail(db.Model):
     __tablename__ = 'order_detail'

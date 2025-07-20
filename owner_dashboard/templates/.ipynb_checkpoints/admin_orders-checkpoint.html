@@ -44,6 +44,7 @@
                 <th>Customer</th>
                 <th>Phone</th>
                 <th>Time</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody>
@@ -70,7 +71,8 @@
                     <td>${order.id_order_id}</td>
                     <td>${order.gn_full_name}</td>
                     <td>${order.nm_phone_number}</td>
-                    <td>${order.dt_order_datetime}</td>
+                    <td>${order.dt_order_date}</td>
+                    <td>${order.gn_order_status_name}</td>
                 `;
                 row.onclick = () => showOrderDetail(order.id_order_id);
                 tbody.appendChild(row);
@@ -105,3 +107,5 @@
 
 </body>
 </html>
+
+
