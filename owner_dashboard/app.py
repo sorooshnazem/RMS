@@ -58,5 +58,47 @@ def view_orders():
 def api_orders():
     return jsonify(get_orders())
 
+@app.route('/api/orders/<int:order_id>')
+def api_order_detail(order_id):
+    conn = sqlite3.connect('../main_app/instance/restaurant.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT f.gn_food_name, f.ds_food_descr, f.nm_price_number
+        FROM order_detail o
+        JOIN food f ON o.id_food_id = f.id_food_id
+        WHERE o.id_order_id = ?
+    """, (order_id,))
+    
+    items = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+
+    if not items:
+        return jsonify({'error': 'No items found for this order'}), 404
+
+    return jsonify({'items': items})
+
+@app.route('/api/orders/<int:order_id>/status', methods=['POST'])
+def update_order_status(order_id):
+    if not session.get('admin_logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        new_status = request.json.get('status')
+    except:
+        return jsonify({'error': 'Invalid JSON'}), 400
+
+    if new_status not in ['Confirmed', 'Rejected']:
+        return jsonify({'error': 'Invalid status'}), 400
+
+    conn = sqlite3.connect('../main_app/instance/restaurant.db')
+    cursor = conn.cursor()
+    cursor.execute("UPDATE 'order' SET gn_order_status_name = ? WHERE id_order_id = ?", (new_status, order_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'success': True})
+
 if __name__ == '__main__':
     app.run(port=5001, debug=True)

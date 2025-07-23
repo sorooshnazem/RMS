@@ -20,92 +20,149 @@
             border: 1px solid #ccc;
             text-align: left;
         }
-        tr:hover {
+        tr:hover:not(.order-details) {
             background-color: #f5f5f5;
             cursor: pointer;
         }
-        #order-detail {
-            max-width: 800px;
-            margin: 20px auto;
-            border: 1px solid #ccc;
+        .order-details td {
+            background-color: #f9f9f9;
             padding: 15px;
-            display: none;
+            font-size: 14px;
         }
+        .status-btn {
+            margin-right: 5px;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background-color: #f0ad4e; /* orange */
+        }
+
+        .status-confirmed {
+            background-color: #5cb85c; /* green */
+        }
+
+        .status-rejected {
+            background-color: #d9534f; /* red */
+        }
+
     </style>
 </head>
 <body>
 
-    <h1>Live Incoming Orders</h1>
+<h1>Live Incoming Orders</h1>
 
-    <table id="orders-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Customer</th>
-                <th>Phone</th>
-                <th>Time</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Orders will be inserted here -->
-        </tbody>
-    </table>
+<table id="orders-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Time</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Orders will be dynamically inserted here -->
+    </tbody>
+</table>
 
-    <div id="order-detail">
-        <h2>Order Details</h2>
-        <div id="detail-content">Select an order to view details.</div>
-    </div>
+<script>
+    async function fetchOrders() {
+        const res = await fetch('/api/orders');
+        const orders = await res.json();
+        const tbody = document.querySelector('#orders-table tbody');
+        tbody.innerHTML = '';
 
-    <script>
-        async function fetchOrders() {
-            const res = await fetch('/api/orders');
-            const orders = await res.json();
+        orders.forEach(order => {
+            const row = document.createElement('tr');
 
-            const tbody = document.querySelector('#orders-table tbody');
-            tbody.innerHTML = '';
+            // Normalize status case for comparison
+            const isPending = order.gn_order_status_name?.toLowerCase() === 'pending';
 
-            orders.forEach(order => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${order.id_order_id}</td>
-                    <td>${order.gn_full_name}</td>
-                    <td>${order.nm_phone_number}</td>
-                    <td>${order.dt_order_date}</td>
-                    <td>${order.gn_order_status_name}</td>
-                `;
-                row.onclick = () => showOrderDetail(order.id_order_id);
-                tbody.appendChild(row);
-            });
+            const statusHTML = isPending
+                ? `
+                    <button class="status-btn" onclick="event.stopPropagation(); updateStatus(${order.id_order_id}, 'Confirmed')">Confirm</button>
+                    <button class="status-btn" onclick="event.stopPropagation(); updateStatus(${order.id_order_id}, 'Rejected')">Reject</button>
+                  `
+                : order.gn_order_status_name;
+
+            row.innerHTML = `
+                <td>${order.id_order_id}</td>
+                <td>${order.gn_full_name}</td>
+                <td>${order.nm_phone_number}</td>
+                <td>${order.dt_order_date}</td>
+                <td>${statusHTML}</td>
+            `;
+
+            row.addEventListener('click', () => toggleDetails(order.id_order_id));
+            tbody.appendChild(row);
+
+            const detailRow = document.createElement('tr');
+            detailRow.classList.add('order-details');
+            detailRow.style.display = 'none';
+            detailRow.id = `details-${order.id_order_id}`;
+            detailRow.innerHTML = `<td colspan="5">Loading...</td>`;
+            tbody.appendChild(detailRow);
+        });
+    }
+
+    async function toggleDetails(orderId) {
+        const detailRow = document.getElementById(`details-${orderId}`);
+        if (!detailRow) return;
+
+        const isVisible = detailRow.style.display !== 'none';
+        if (isVisible) {
+            detailRow.style.display = 'none';
+            return;
         }
 
-        async function showOrderDetail(orderId) {
-            const res = await fetch(`/api/orders/${orderId}`);
-            const data = await res.json();
+        const res = await fetch(`/api/orders/${orderId}`);
+        const data = await res.json();
 
-            if (data.error) {
-                document.getElementById('detail-content').innerText = data.error;
-            } else {
-                const itemsHtml = data.items.map(item => `
-                    <li>${item.gn_food_name} – ${item.nm_quantity_number} × €${item.nm_price_number}</li>
-                `).join('');
-                document.getElementById('detail-content').innerHTML = `
-                    <p><strong>Name:</strong> ${data.order.gn_full_name}</p>
-                    <p><strong>Phone:</strong> ${data.order.nm_phone_number}</p>
-                    <p><strong>Date:</strong> ${data.order.dt_order_datetime}</p>
-                    <p><strong>Items:</strong></p>
-                    <ul>${itemsHtml}</ul>
-                `;
-                document.getElementById('order-detail').style.display = 'block';
-            }
+        if (data.error) {
+            detailRow.innerHTML = `<td colspan="5"><em>${data.error}</em></td>`;
+        } else {
+            const itemsHtml = data.items.map(item => `
+                <li><strong>${item.gn_food_name}</strong> – €${item.nm_price_number}<br><em>${item.ds_food_descr}</em></li>
+            `).join('');
+
+            detailRow.innerHTML = `<td colspan="5">
+                <strong>Order Details:</strong>
+                <ul>${itemsHtml}</ul>
+            </td>`;
         }
 
-        // Initial fetch and refresh every 10 seconds
-        fetchOrders();
-        setInterval(fetchOrders, 10000);
-    </script>
+        detailRow.style.display = '';
+    }
+
+    async function updateStatus(orderId, status) {
+        const res = await fetch(`/api/orders/${orderId}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+
+        const result = await res.json();
+        if (result.success) {
+            fetchOrders(); // Refresh table
+        } else {
+            alert(result.error || 'Failed to update order status.');
+        }
+    }
+
+    fetchOrders();
+    setInterval(fetchOrders, 10000); // Auto-refresh every 10s
+</script>
 
 </body>
 </html>
-
-
