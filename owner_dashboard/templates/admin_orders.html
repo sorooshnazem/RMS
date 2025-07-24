@@ -37,10 +37,17 @@
         
         .status-badge {
             padding: 4px 10px;
-            border-radius: 8px;
+            border-radius: 12px;
             font-weight: bold;
             color: white;
             display: inline-block;
+            font-size: 14px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            transform: scale(1);
+        }
+
+        .status-badge:hover {
+            transform: scale(1.05);
         }
 
         .status-pending {
@@ -67,8 +74,9 @@
             <th>ID</th>
             <th>Customer</th>
             <th>Phone</th>
-            <th>Time</th>
+            <th>Order Time&Date</th>
             <th>Status</th>
+            <th>Response to Order Time</th>
         </tr>
     </thead>
     <tbody>
@@ -78,43 +86,54 @@
 
 <script>
     async function fetchOrders() {
-        const res = await fetch('/api/orders');
-        const orders = await res.json();
-        const tbody = document.querySelector('#orders-table tbody');
-        tbody.innerHTML = '';
+    const res = await fetch('/api/orders');
+    const orders = await res.json();
+    const tbody = document.querySelector('#orders-table tbody');
+    tbody.innerHTML = '';
 
-        orders.forEach(order => {
-            const row = document.createElement('tr');
+    const statusMeta = {
+        'Pending': { class: 'status-pending', icon: '⏳' },
+        'Confirmed': { class: 'status-confirmed', icon: '✓' },
+        'Rejected': { class: 'status-rejected', icon: '✗' }
+    };
 
-            // Normalize status case for comparison
-            const isPending = order.gn_order_status_name?.toLowerCase() === 'pending';
+    orders.forEach(order => {
+        const row = document.createElement('tr');
 
-            const statusHTML = isPending
-                ? `
-                    <button class="status-btn" onclick="event.stopPropagation(); updateStatus(${order.id_order_id}, 'Confirmed')">Confirm</button>
-                    <button class="status-btn" onclick="event.stopPropagation(); updateStatus(${order.id_order_id}, 'Rejected')">Reject</button>
-                  `
-                : order.gn_order_status_name;
+        const isPending = order.gn_order_status_name === 'Pending';
 
-            row.innerHTML = `
-                <td>${order.id_order_id}</td>
-                <td>${order.gn_full_name}</td>
-                <td>${order.nm_phone_number}</td>
-                <td>${order.dt_order_date}</td>
-                <td>${statusHTML}</td>
-            `;
+        const statusHTML = isPending
+            ? `
+                <button class="status-btn" onclick="event.stopPropagation(); updateStatus(${order.id_order_id}, 'Confirmed')">✓ Confirm</button>
+                <button class="status-btn" onclick="event.stopPropagation(); updateStatus(${order.id_order_id}, 'Rejected')">✗ Reject</button>
+              `
+            : `<span class="status-badge ${statusMeta[order.gn_order_status_name]?.class || ''}">
+                    ${statusMeta[order.gn_order_status_name]?.icon || ''} ${order.gn_order_status_name}
+               </span>`;
 
-            row.addEventListener('click', () => toggleDetails(order.id_order_id));
-            tbody.appendChild(row);
+        row.innerHTML = `
+            <td>${order.id_order_id}</td>
+            <td>${order.gn_full_name}</td>
+            <td>${order.nm_phone_number}</td>
+            <td>${order.dt_order_date}</td>
+            <td>${statusHTML}</td>
+            <td id="response-time-${order.id_order_id}">
+                ${order.dt_response_to_order_date || '⏳'}
+            </td>
+        `;
 
-            const detailRow = document.createElement('tr');
-            detailRow.classList.add('order-details');
-            detailRow.style.display = 'none';
-            detailRow.id = `details-${order.id_order_id}`;
-            detailRow.innerHTML = `<td colspan="5">Loading...</td>`;
-            tbody.appendChild(detailRow);
-        });
-    }
+        row.addEventListener('click', () => toggleDetails(order.id_order_id));
+        tbody.appendChild(row);
+
+        const detailRow = document.createElement('tr');
+        detailRow.classList.add('order-details');
+        detailRow.style.display = 'none';
+        detailRow.id = `details-${order.id_order_id}`;
+        detailRow.innerHTML = `<td colspan="5">Loading...</td>`;
+        tbody.appendChild(detailRow);
+    });
+}
+
 
     async function toggleDetails(orderId) {
         const detailRow = document.getElementById(`details-${orderId}`);
@@ -154,6 +173,11 @@
 
         const result = await res.json();
         if (result.success) {
+            const now = new Date().toLocaleString();
+            const responseCell = document.getElementById(`response-time-${orderId}`);
+            if (responseCell) {
+                responseCell.textContent = now;
+            }
             fetchOrders(); // Refresh table
         } else {
             alert(result.error || 'Failed to update order status.');

@@ -32,6 +32,7 @@ class Order(db.Model):
     dt_order_date = db.Column(db.Text, nullable=False)
     dt_total_price_date = db.Column(db.Float, nullable=False)
     id_user_id = db.Column(db.Integer, nullable=False)
+    gn_order_status_name = db.Column(db.Text, nullable=False)
 
 class OrderDetail(db.Model):
     __tablename__ = 'order_detail'
@@ -195,7 +196,8 @@ def order():
             ds_order_descr=f'Order for {full_name}',
             dt_order_date=datetime.now(),
             dt_total_price_date=total_price,
-            id_user_id=user_id
+            id_user_id=user_id,
+            gn_order_status_name='Pending'
         )
         db.session.add(new_order)
         db.session.commit()

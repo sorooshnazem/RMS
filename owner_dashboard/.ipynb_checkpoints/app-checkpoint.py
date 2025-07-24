@@ -16,7 +16,8 @@ def get_orders():
         u.nm_phone_number,
         u.gn_surname AS gn_full_name,
         o.dt_order_date,
-        o.gn_order_status_name
+        o.gn_order_status_name,
+        o.dt_response_to_order_date
     FROM "order" o
     JOIN "User" u ON o.id_user_id = u.id_user_id
     ORDER BY o.dt_order_date DESC
@@ -94,7 +95,11 @@ def update_order_status(order_id):
 
     conn = sqlite3.connect('../main_app/instance/restaurant.db')
     cursor = conn.cursor()
-    cursor.execute("UPDATE 'order' SET gn_order_status_name = ? WHERE id_order_id = ?", (new_status, order_id))
+    cursor.execute("""
+        UPDATE "order"
+        SET gn_order_status_name = ?, dt_response_to_order_date = CURRENT_TIMESTAMP
+        WHERE id_order_id = ?
+        """, (new_status, order_id))
     conn.commit()
     conn.close()
 
