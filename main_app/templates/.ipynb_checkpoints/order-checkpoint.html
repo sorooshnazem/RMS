@@ -50,7 +50,11 @@
                     <td>{{ food.gn_food_name }}</td>
                     <td>${{ food.nm_price_number }}</td>
                     <td>
-                        <input type="number" name="quantity_{{ food.id_food_id }}" min="0" value="0">
+                        <input type="number" 
+                               class="quantity-input" 
+                               name="quantity_{{ food.id_food_id }}" 
+                               min="0" value="0" 
+                               data-price="{{ food.nm_price_number }}">
                     </td>
                 </tr>
                 {% endfor %}
@@ -64,6 +68,31 @@
         <label>Phone Number:</label>
         <input type="text" name="phone_number" pattern="\d{10}" required placeholder="e.g. 3333333333">
 
+        <div style="text-align: center; margin-top: 20px;">
+            <strong>Total Price: $<span id="total-price">0.00</span></strong>
+        </div>
+
         <input type="submit" value="Submit Order">
     </form>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const inputs = document.querySelectorAll('.quantity-input');
+        const totalSpan = document.getElementById('total-price');
+    
+        function calculateTotal() {
+            let total = 0;
+            inputs.forEach(input => {
+                const quantity = parseInt(input.value) || 0;
+                const price = parseFloat(input.dataset.price) || 0;
+                total += quantity * price;
+            });
+            totalSpan.textContent = total.toFixed(2);
+        }
+    
+        inputs.forEach(input => {
+            input.addEventListener('input', calculateTotal);
+        });
+    });
+    </script>
 {% endblock %}
