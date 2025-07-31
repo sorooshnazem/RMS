@@ -152,7 +152,7 @@
             detailRow.innerHTML = `<td colspan="5"><em>${data.error}</em></td>`;
         } else {
             const itemsHtml = data.items.map(item => `
-                <li><strong>${item.gn_food_name}</strong> – €${item.nm_price_number}<br><em>${item.ds_food_descr}</em></li>
+                <li><strong>${item.gn_food_name}</strong> (quantity: ${item.nm_food_ordered_number}) – €${item.nm_price_number}<br><em>${item.ds_food_descr}</em></li>
             `).join('');
 
             detailRow.innerHTML = `<td colspan="5">

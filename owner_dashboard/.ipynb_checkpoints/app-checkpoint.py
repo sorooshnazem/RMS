@@ -6,7 +6,7 @@ app.secret_key = 'your-secret-key12345'  # Required for sessions
 
 # --- Helper function ---
 def get_orders():
-    conn = sqlite3.connect('../main_app/instance/restaurant.db')  # adjust path if needed
+    conn = sqlite3.connect('../POS/instance/restaurant.db')  # adjust path if needed
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     
@@ -61,12 +61,12 @@ def api_orders():
 
 @app.route('/api/orders/<int:order_id>')
 def api_order_detail(order_id):
-    conn = sqlite3.connect('../main_app/instance/restaurant.db')
+    conn = sqlite3.connect('../POS/instance/restaurant.db')
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT f.gn_food_name, f.ds_food_descr, f.nm_price_number
+        SELECT f.gn_food_name, f.ds_food_descr, f.nm_price_number, o.nm_food_ordered_number
         FROM order_detail o
         JOIN food f ON o.id_food_id = f.id_food_id
         WHERE o.id_order_id = ?
@@ -93,7 +93,7 @@ def update_order_status(order_id):
     if new_status not in ['Confirmed', 'Rejected']:
         return jsonify({'error': 'Invalid status'}), 400
 
-    conn = sqlite3.connect('../main_app/instance/restaurant.db')
+    conn = sqlite3.connect('../POS/instance/restaurant.db')
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE "order"

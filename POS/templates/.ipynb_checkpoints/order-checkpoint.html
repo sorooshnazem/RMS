@@ -23,7 +23,7 @@
             margin: auto;
         }
         input[type="text"], input[type="number"] {
-            width: 100%;
+            width: 90%;
             padding: 8px;
             margin: 5px 0 15px;
         }
@@ -42,19 +42,23 @@
                     <th>Food</th>
                     <th>Price</th>
                     <th>Quantity</th>
+                    <th>Note On Order</th>
                 </tr>
             </thead>
             <tbody>
                 {% for food in foods %}
                 <tr>
                     <td>{{ food.gn_food_name }}</td>
-                    <td>${{ food.nm_price_number }}</td>
+                    <td>€{{ food.nm_price_number }}</td>
                     <td>
                         <input type="number" 
                                class="quantity-input" 
                                name="quantity_{{ food.id_food_id }}" 
                                min="0" value="0" 
                                data-price="{{ food.nm_price_number }}">
+                    </td>
+                    <td>
+                        <input type="text" name="note_{{ food.id_food_id }}"> 
                     </td>
                 </tr>
                 {% endfor %}
@@ -69,7 +73,7 @@
         <input type="text" name="phone_number" pattern="\d{10}" required placeholder="e.g. 3333333333">
 
         <div style="text-align: center; margin-top: 20px;">
-            <strong>Total Price: $<span id="total-price">0.00</span></strong>
+            <strong>Total Price: €<span id="total-price">0.00</span></strong>
         </div>
 
         <input type="submit" value="Submit Order">

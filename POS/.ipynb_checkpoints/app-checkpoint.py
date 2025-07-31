@@ -39,6 +39,7 @@ class OrderDetail(db.Model):
     id_order_id = db.Column(db.Integer, db.ForeignKey('order.id_order_id'), primary_key=True)
     id_food_id = db.Column(db.Integer, db.ForeignKey('food.id_food_id'), primary_key=True)
     nm_food_ordered_number = db.Column(db.Integer, nullable=False)
+    ds_note_descr = db.Column(db.Text)
 
 
 # ---------- Routes ----------
@@ -169,6 +170,7 @@ def order():
         total_price = 0
 
         for key, value in request.form.items():
+            print(f"FORM INPUT: {key} = {value}")
             if key.startswith('quantity_') and value.strip():
                 try:
                     food_id = int(key.split('_')[1])
@@ -176,12 +178,16 @@ def order():
                     if quantity > 0:
                         food = Food.query.get(food_id)
                         if food:
+                            note_key = f'note_{food_id}'
+                            note = request.form.get(note_key, '').strip()
+                            
                             subtotal = food.nm_price_number * quantity
                             ordered_items.append({
                                 'name': food.gn_food_name,
                                 'quantity': quantity,
                                 'price': food.nm_price_number,
-                                'subtotal': subtotal
+                                'subtotal': subtotal,
+                                'note': note
                             })
                             total_price += subtotal
                 except ValueError:
@@ -208,7 +214,8 @@ def order():
             order_detail = OrderDetail(
                 id_order_id=new_order.id_order_id,
                 id_food_id=food.id_food_id,
-                nm_food_ordered_number=item['quantity']
+                nm_food_ordered_number=item['quantity'],
+                ds_note_descr=item.get('note') or 'TEST NOTE'
             )
             db.session.add(order_detail)
 

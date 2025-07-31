@@ -6,7 +6,7 @@
 <body>
     <h1 style="text-align:center;">✅ Order Submitted Successfully!</h1>
     <p style="text-align:center;">Order ID: {{ order.id_order_id }}</p>
-    <p style="text-align:center;">Total: ${{ '%.2f' | format(order.dt_total_price_date) }}</p>
+    <p style="text-align:center;">Total: €{{ '%.2f' | format(order.dt_total_price_date) }}</p>
     <p style="text-align:center;"><a href="{{ url_for('order') }}">Place Another Order</a></p>
 </body>
 </html>
