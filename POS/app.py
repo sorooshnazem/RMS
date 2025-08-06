@@ -170,7 +170,6 @@ def order():
         total_price = 0
 
         for key, value in request.form.items():
-            print(f"FORM INPUT: {key} = {value}")
             if key.startswith('quantity_') and value.strip():
                 try:
                     food_id = int(key.split('_')[1])
