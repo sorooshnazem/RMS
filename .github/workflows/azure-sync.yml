@@ -3,21 +3,23 @@ name: Sync to Azure DevOps
 on:
   push:
     branches:
-      - main   # or master if that's your default
+      - main
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout repo with full history
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0   # 🚨 fetch full history
 
       - name: Push to Azure DevOps
         run: |
           git config --global user.name "GitHub Sync Bot"
           git config --global user.email "actions@github.com"
+
           git remote add azure https://$AZURE_PAT@dev.azure.com/sorooshnazem1983/Stock%20Management%20System/_git/Stock%20Management%20System
           git push azure main --force
         env:
-          AZURE_USER: ${{ secrets.AZURE_USER }}
           AZURE_PAT: ${{ secrets.AZURE_PAT }}
